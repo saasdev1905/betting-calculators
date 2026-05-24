@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Sports Betting Calculator Suite | Parlay, Hedge & EV Tools</title>
+<meta name="description" content="Calculate parlay payouts, convert odds, find hedge stakes, measure bookmaker hold and check expected value — all free and private. Betting tools by CorrectBetting.">
+<style>
+  :root {
+    --bg: #0e1117;
+    --panel: #161b24;
+    --panel-2: #1d242f;
+    --line: #2a323e;
+    --txt: #e8edf4;
+    --muted: #8a97a8;
+    --accent: #19c37d;
+    --accent-dim: #128a59;
+    --warn: #f0883e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    background: #090c11;
+    min-height: 100%;
+  }
+  body {
+    width: 420px;
+    max-width: 100%;
+    margin: 24px auto;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    font-size: 14px;
+  }
+  header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #131922, #0e1117);
+  }
+  header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  header .dot { color: var(--accent); font-size: 18px; line-height: 1; }
+  header p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  nav {
+    display: flex;
+    gap: 2px;
+    padding: 8px 8px 0;
+    background: var(--bg);
+    overflow-x: auto;
+  }
+  nav button {
+    flex: 1;
+    min-width: 56px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 4px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  nav button:hover { color: var(--txt); }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .panel { display: none; padding: 14px 16px 4px; }
+  .panel.active { display: block; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 10px 0 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  input, select {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--txt);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent-dim); }
+
+  .legs input { margin-bottom: 6px; }
+
+  .row { display: flex; gap: 8px; }
+  .row > div { flex: 1; }
+
+  button.act {
+    width: 100%;
+    margin-top: 12px;
+    background: var(--accent);
+    color: #04140c;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  button.act:hover { background: #1ad889; }
+  button.ghost {
+    background: var(--panel-2);
+    color: var(--muted);
+    font-weight: 600;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 6px;
+    width: 100%;
+  }
+  button.ghost:hover { color: var(--txt); }
+
+  .result {
+    margin-top: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px 12px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result .line {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .result .line:last-child { border-bottom: none; }
+  .result .line span { color: var(--muted); }
+  .result .line b { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .result .line b.good { color: var(--accent); }
+  .result .line b.bad { color: var(--warn); }
+
+  .hint { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  footer {
+    margin-top: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    background: var(--panel);
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  footer a:hover { text-decoration: underline; }
+  footer p { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* Mobile / Firefox for Android: popup opens full-screen */
+  @media (max-width: 420px) {
+    body { width: 100%; min-height: 100vh; }
+    nav button { min-width: 0; font-size: 12px; padding: 10px 4px; }
+    .panel { padding: 16px 18px 6px; }
+    input, select { padding: 11px 12px; font-size: 16px; }
+    button.act { padding: 12px; font-size: 15px; }
+    header h1 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1><span class="dot">●</span> Betting Calculator Suite</h1>
+    <p>Five free tools for smarter sports betting</p>
+  </header>
+
+  <nav>
+    <button data-tab="parlay" class="active">Parlay</button>
+    <button data-tab="convert">Odds</button>
+    <button data-tab="hedge">Hedge</button>
+    <button data-tab="hold">Hold</button>
+    <button data-tab="value">Value</button>
+  </nav>
+
+  <!-- PARLAY -->
+  <section class="panel active" id="parlay">
+    <label>Odds format</label>
+    <select id="p-fmt">
+      <option value="decimal">Decimal (2.50)</option>
+      <option value="american">American (+150 / -200)</option>
+      <option value="fractional">Fractional (3/2)</option>
+    </select>
+    <label>Stake</label>
+    <input id="p-stake" type="number" value="10" min="0" step="any">
+    <label>Legs</label>
+    <div class="legs" id="p-legs">
+      <input type="text" value="2.00" placeholder="Leg 1">
+      <input type="text" value="1.80" placeholder="Leg 2">
+    </div>
+    <button class="ghost" id="p-add">+ Add leg</button>
+    <button class="act" id="p-calc">Calculate</button>
+    <div class="result" id="p-out">
+      <div class="line"><span>Combined odds</span><b id="p-odds">—</b></div>
+      <div class="line"><span>Payout</span><b id="p-pay" class="good">—</b></div>
+      <div class="line"><span>Profit</span><b id="p-prof" class="good">—</b></div>
+      <div class="line"><span>Implied probability</span><b id="p-prob">—</b></div>
+    </div>
+  </section>
+
+  <!-- ODDS CONVERTER -->
+  <section class="panel" id="convert">
+    <label>Input format</label>
+    <select id="c-fmt">
+      <option value="decimal">Decimal (2.50)</option>
+      <option value="american">American (+150 / -200)</option>
+      <option value="fractional">Fractional (3/2)</option>
+    </select>
+    <label>Odds value</label>
+    <input id="c-val" type="text" value="2.50" placeholder="e.g. 2.50">
+    <button class="act" id="c-calc">Convert</button>
+    <div class="result" id="c-out">
+      <div class="line"><span>Decimal</span><b id="c-dec">—</b></div>
+      <div class="line"><span>American</span><b id="c-am">—</b></div>
+      <div class="line"><span>Implied probability</span><b id="c-prob">—</b></div>
+    </div>
+  </section>
+
+  <!-- HEDGE -->
+  <section class="panel" id="hedge">
+    <label>Original stake</label>
+    <input id="h-stake" type="number" value="100" min="0" step="any">
+    <div class="row">
+      <div>
+        <label>Original odds (dec)</label>
+        <input id="h-odds" type="number" value="2.50" min="1" step="any">
+      </div>
+      <div>
+        <label>Hedge odds (dec)</label>
+        <input id="h-hodds" type="number" value="1.80" min="1" step="any">
+      </div>
+    </div>
+    <button class="act" id="h-calc">Calculate hedge</button>
+    <div class="result" id="h-out">
+      <div class="line"><span>Hedge stake</span><b id="h-hstake">—</b></div>
+      <div class="line"><span>Total staked</span><b id="h-total">—</b></div>
+      <div class="line"><span>Guaranteed profit</span><b id="h-prof">—</b></div>
+      <div class="line"><span>ROI</span><b id="h-roi">—</b></div>
+    </div>
+    <p class="hint">Hedge bets across two outcomes to lock in a result regardless of who wins.</p>
+  </section>
+
+  <!-- HOLD -->
+  <section class="panel" id="hold">
+    <label>Decimal odds for every outcome</label>
+    <div class="legs" id="o-legs">
+      <input type="text" value="1.91" placeholder="Outcome 1">
+      <input type="text" value="1.91" placeholder="Outcome 2">
+    </div>
+    <button class="ghost" id="o-add">+ Add outcome</button>
+    <button class="act" id="o-calc">Calculate hold</button>
+    <div class="result" id="o-out">
+      <div class="line"><span>Market hold (margin)</span><b id="o-hold" class="bad">—</b></div>
+      <div class="line"><span>Total implied prob.</span><b id="o-tot">—</b></div>
+    </div>
+    <p class="hint">"Hold" is the bookmaker's built-in margin. Lower hold = better value for bettors.</p>
+  </section>
+
+  <!-- VALUE -->
+  <section class="panel" id="value">
+    <label>Your estimated win probability (%)</label>
+    <input id="v-prob" type="number" value="55" min="0" max="100" step="any">
+    <div class="row">
+      <div>
+        <label>Decimal odds</label>
+        <input id="v-odds" type="number" value="2.00" min="1" step="any">
+      </div>
+      <div>
+        <label>Stake</label>
+        <input id="v-stake" type="number" value="10" min="0" step="any">
+      </div>
+    </div>
+    <button class="act" id="v-calc">Check value</button>
+    <div class="result" id="v-out">
+      <div class="line"><span>Expected value (EV)</span><b id="v-ev">—</b></div>
+      <div class="line"><span>Edge</span><b id="v-edge">—</b></div>
+      <div class="line"><span>Fair odds</span><b id="v-fair">—</b></div>
+      <div class="line"><span>Verdict</span><b id="v-verdict">—</b></div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="https://correctbetting.com/betting-calculators/" target="_blank" rel="noopener">Visit CorrectBetting for more betting tools →</a>
+    <p>No data collected · Works offline</p>
+  </footer>
+
+  <script src="betting-calculators.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
